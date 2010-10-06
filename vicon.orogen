@@ -1,0 +1,34 @@
+name 'vicon'
+version 0.1
+
+using_library 'vicon'
+import_types_from 'base'
+
+task_context 'Task' do
+	needs_configuration
+	
+	property("host", "/std/string").
+            doc "the network host of the vicon tracking system"
+        property("port", "int", 801).
+            doc "the network port to use for the vicon tracking system"
+
+        property("subject",   "/std/string").
+            doc "the subject that is being tracked"
+        property("segment",   "/std/string").
+            doc "the segment of the subject that is tracked"
+
+	output_port('pose_samples', '/wrappers/samples/RigidBodyState').
+            doc "pose of the configured segment"
+end
+
+
+deployment "test_vicon" do
+    do_not_install
+    vicon_task = task("Task", "Task").
+	periodic(0.01)
+
+    add_default_logger
+    if !corba_enabled?
+        browse vicon_task
+    end
+end

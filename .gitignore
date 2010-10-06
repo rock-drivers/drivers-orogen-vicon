@@ -1,0 +1,10 @@
+templates/*
+.orogen/*
+*~
+.*.swp
+build/*
+*.log
+*.ior
+
+*autobuild-stamp
+
