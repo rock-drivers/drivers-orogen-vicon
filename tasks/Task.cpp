@@ -40,12 +40,15 @@ bool Task::startHook()
 
 void Task::updateHook()
 {
-    const base::Time timeout( 0 );
+    const base::Time timeout( base::Time::fromSeconds(0) );
     while( impl->driver.getFrame( timeout ) )
     {
+	// origin is the origin2world transform for the neutral position/orientation
+	Eigen::Transform3d C_world2origin( Eigen::Transform3d(_origin.value()).inverse() );
+
 	base::samples::RigidBodyState rbs;
 	rbs.time = impl->driver.getTimestamp();
-	rbs.setTransform( impl->driver.getSegmentTransform( _subject.value(), _segment.value() ) );
+	rbs.setTransform( C_world2origin * impl->driver.getSegmentTransform( _subject.value(), _segment.value() ) );
 	_pose_samples.write( rbs );
     }
 }
