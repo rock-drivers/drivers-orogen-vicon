@@ -1,6 +1,5 @@
 #include "Task.hpp"
 
-#include <rtt/FileDescriptorActivity.hpp>
 #include <ViconDriver.hpp>
 
 using namespace vicon;
@@ -13,10 +12,6 @@ public:
     Driver driver;
 };
 }
-
-RTT::FileDescriptorActivity* Task::getFileDescriptorActivity()
-{ return dynamic_cast< RTT::FileDescriptorActivity* >(getActivity().get()); }
-
 
 Task::Task(std::string const& name)
     : TaskBase(name), impl( new TaskImpl() )

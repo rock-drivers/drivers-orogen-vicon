@@ -4,13 +4,6 @@
 #include "vicon/TaskBase.hpp"
 #include <boost/shared_ptr.hpp>
 
-
-namespace RTT
-{
-    class FileDescriptorActivity;
-}
-
-
 namespace vicon {
     class TaskImpl;
 
@@ -23,8 +16,6 @@ namespace vicon {
 
     public:
         Task(std::string const& name = "vicon::Task");
-
-        RTT::FileDescriptorActivity* getFileDescriptorActivity();
 
         /** This hook is called by Orocos when the state machine transitions
          * from PreOperational to Stopped. If it returns false, then the
