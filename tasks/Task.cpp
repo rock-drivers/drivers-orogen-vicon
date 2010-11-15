@@ -46,14 +46,7 @@ void Task::updateHook()
 	rbs.setTransform( C_world2origin * impl->driver.getSegmentTransform( _subject.value(), _segment.value() ) );
 	_pose_samples.write( rbs );
 
-	typedef std::vector<Eigen::Vector3d> vec3vec;
-	vec3vec markers = impl->driver.getUnlabeledMarkers();
-	std::vector<wrappers::Vector3> markersAtOrigin;
-	for( vec3vec::iterator it = markers.begin(); it != markers.end(); it++ )
-	{
-	    markersAtOrigin.push_back( wrappers::Vector3( C_world2origin * (*it) ) );
-	} 
-	_unlabeled_markers.write( markersAtOrigin );
+	_unlabeled_markers.write( impl->driver.getUnlabeledMarkers() );
     }
 }
 

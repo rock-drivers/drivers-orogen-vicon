@@ -18,13 +18,13 @@ task_context 'Task' do
         property("segment",   "/std/string").
             doc "the segment of the subject that is tracked"
 
-	property("origin", "/wrappers/samples/RigidBodyState").
+	property("origin", "/base/samples/RigidBodyState").
 	    doc "set the origin of the segment, includes position and orientation."
 
-	output_port('pose_samples', '/wrappers/samples/RigidBodyState').
+	output_port('pose_samples', '/base/samples/RigidBodyState').
             doc "pose of the configured segment."
 
-	output_port('unlabeled_markers', '/std/vector<wrappers/Vector3>')
+	output_port('unlabeled_markers', '/std/vector<base/Position>')
 end
 
 
