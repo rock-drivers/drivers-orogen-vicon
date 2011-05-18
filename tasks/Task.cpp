@@ -39,7 +39,7 @@ void Task::updateHook()
     while( impl->driver.getFrame( timeout ) )
     {
 	// origin is the origin2world transform for the neutral position/orientation
-	Eigen::Transform3d C_world2origin( Eigen::Transform3d(_origin.value()).inverse() );
+	Eigen::Affine3d C_world2origin( Eigen::Affine3d(_origin.value()).inverse() );
 
 	base::samples::RigidBodyState rbs;
 	rbs.time = impl->driver.getTimestamp();

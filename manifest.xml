@@ -12,5 +12,4 @@
 
   <depend package="drivers/vicon"/>
   <depend package="base/orogen/types"/>
-  <rosdep name="eigen2" />
 </package>
