@@ -24,7 +24,7 @@ task_context 'Task' do
 	output_port('pose_samples', '/base/samples/RigidBodyState').
             doc "pose of the configured segment."
 
-	output_port('unlabeled_markers', '/std/vector<base/Position>')
+	output_port('unlabeled_markers', '/std/vector</base/Vector3d>')
 end
 
 
