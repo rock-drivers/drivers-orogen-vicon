@@ -30,6 +30,8 @@ bool Task::configureHook()
 bool Task::startHook()
 {
     bool result = impl->driver.connect( _host.value(), _port.value() );
+    if (result)
+        impl->driver.setAxesDir( _xdir.value(), _ydir.value(), _zdir.value() );
     return result;
 }
 
