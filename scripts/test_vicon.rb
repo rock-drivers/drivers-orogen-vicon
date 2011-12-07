@@ -1,6 +1,7 @@
 #! /usr/bin/env ruby
 
 require 'orocos'
+require 'ping'
 include Orocos
 
 if !ARGV[0]
@@ -8,7 +9,12 @@ if !ARGV[0]
     exit 1
 end
 
-ENV['PKG_CONFIG_PATH'] = "#{File.expand_path("..", File.dirname(__FILE__))}/build:#{ENV['PKG_CONFIG_PATH']}"
+if !Ping.pingecho(ARGV[0],1)
+    STDERR.puts "Host not reachable!"
+    exit 1
+end
+
+#ENV['PKG_CONFIG_PATH'] = "#{File.expand_path("..", File.dirname(__FILE__))}/build:#{ENV['PKG_CONFIG_PATH']}"
 
 Orocos.initialize
 
