@@ -13,6 +13,8 @@ namespace vicon {
 
     protected:
 	boost::shared_ptr<TaskImpl> impl;
+        
+        virtual ::base::samples::RigidBodyState getZeroOrigin();
 
     public:
         Task(std::string const& name = "vicon::Task");

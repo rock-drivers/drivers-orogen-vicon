@@ -18,6 +18,13 @@ Task::Task(std::string const& name)
 {
 }
 
+::base::samples::RigidBodyState Task::getZeroOrigin()
+{
+    base::samples::RigidBodyState lrbs;
+    lrbs.initUnknown();
+    return lrbs;
+}
+
 
 /// The following lines are template definitions for the various state machine
 // hooks defined by Orocos::RTT. See Task.hpp for more detailed
@@ -25,8 +32,11 @@ Task::Task(std::string const& name)
 
 bool Task::configureHook()
 {
+    if (!_origin.value().hasValidPosition() || !_origin.value().hasValidOrientation() ) 
+        _origin.set(getZeroOrigin());
     return true;
 }
+
 bool Task::startHook()
 {
     bool result = impl->driver.connect( _host.value(), _port.value() );

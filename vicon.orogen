@@ -25,6 +25,9 @@ task_context 'Task' do
     property("ydir","int",2).doc("Direction of the y axis e.g. ... 2=Left, -2=Right ...")
     property("zdir","int",3).doc("Direction of the z axis e.g. ... 3=Up, -3=Down")
 
+    operation("getZeroOrigin").
+        returns("base/samples/RigidBodyState")
+
 	output_port('pose_samples', '/base/samples/RigidBodyState').
             doc "pose of the configured segment."
 
