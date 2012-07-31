@@ -21,6 +21,9 @@ task_context 'Task' do
 	property("origin", "/base/samples/RigidBodyState").
 	    doc "set the origin of the segment, includes position and orientation."
 
+        property("segment_orientation", "/base/Orientation").
+            doc "set an offset orientation for the segment"
+
     property("xdir","int",1).doc("Direction of the x axis e.g. 1=Forward, -1=Backward ...")
     property("ydir","int",2).doc("Direction of the y axis e.g. ... 2=Left, -2=Right ...")
     property("zdir","int",3).doc("Direction of the z axis e.g. ... 3=Up, -3=Down")
