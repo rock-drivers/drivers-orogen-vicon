@@ -56,8 +56,13 @@ void Task::updateHook()
 
 	base::samples::RigidBodyState rbs;
 	rbs.time = impl->driver.getTimestamp();
-	rbs.setTransform( C_world2origin * C_segment_orientation * 
-                impl->driver.getSegmentTransform( _subject.value(), _segment.value() ) );
+        
+        Eigen::Affine3d segment_transform = impl->driver.getSegmentTransform(
+                _subject.value(), _segment.value() );
+
+        segment_transform.linear() = C_segment_orientation.linear() * segment_transform.linear();
+
+	rbs.setTransform( C_world2origin * segment_transform );
 	_pose_samples.write( rbs );
 
 	_unlabeled_markers.write( impl->driver.getUnlabeledMarkers() );
