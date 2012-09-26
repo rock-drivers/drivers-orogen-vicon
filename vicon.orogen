@@ -18,6 +18,10 @@ task_context 'Task' do
         property("segment",   "/std/string").
             doc "the segment of the subject that is tracked"
 
+        property("source_frame", "/std/string", "measurement").
+            doc "from frame for the transformer"
+        property("target_frame", "/std/string", "segment").
+            doc "to frame for the transformer"
     # Transformation in vicon is Tem Tms Tsb
     # Tem is the earth to vicon origin (measurement frame)
     # Tms is measurement to segment which is the transfromation vicon provides

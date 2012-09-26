@@ -56,6 +56,8 @@ void Task::updateHook()
 
 	base::samples::RigidBodyState rbs;
 	rbs.time = impl->driver.getTimestamp();
+    rbs.sourceFrame = _source_frame.get();
+    rbs.targetFrame = _target_frame.get();
         
         Eigen::Affine3d segment_transform = impl->driver.getSegmentTransform(
                 _subject.value(), _segment.value() );
