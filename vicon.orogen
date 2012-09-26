@@ -22,6 +22,12 @@ task_context 'Task' do
             doc "from frame for the transformer"
         property("target_frame", "/std/string", "segment").
             doc "to frame for the transformer"
+
+        property("drop_occluded", "bool", false).
+            doc "do not send samples when the segment is occluded"
+        property("invalidate_occluded", "bool", true).
+            doc "invalidate sample when the segment is occluded"
+
     # Transformation in vicon is Tem Tms Tsb
     # Tem is the earth to vicon origin (measurement frame)
     # Tms is measurement to segment which is the transfromation vicon provides

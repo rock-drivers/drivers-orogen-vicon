@@ -58,12 +58,18 @@ void Task::updateHook()
 	rbs.time = impl->driver.getTimestamp();
     rbs.sourceFrame = _source_frame.get();
     rbs.targetFrame = _target_frame.get();
-        
-        Eigen::Affine3d segment_transform = impl->driver.getSegmentTransform(
-                _subject.value(), _segment.value() );
-
-	rbs.setTransform( C_world2origin * segment_transform * C_segment2body );
-	_pose_samples.write( rbs );
+    
+    bool in_frame;
+    Eigen::Affine3d segment_transform = impl->driver.getSegmentTransform(
+        _subject.value(), _segment.value(), in_frame );
+    
+    if (in_frame || !_invalidate_occluded.get())
+        rbs.setTransform( C_world2origin * segment_transform * C_segment2body );
+    else
+        rbs.invalidate();
+    
+    if (in_frame || !_drop_occluded.get())
+	    _pose_samples.write( rbs );
 
 	_unlabeled_markers.write( impl->driver.getUnlabeledMarkers() );
     }
