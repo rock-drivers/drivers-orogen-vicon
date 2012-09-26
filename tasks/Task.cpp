@@ -52,7 +52,7 @@ void Task::updateHook()
     {
 	// origin is the origin2world transform for the neutral position/orientation
 	Eigen::Affine3d C_world2origin( Eigen::Affine3d(_origin.value()).inverse() );
-        Eigen::Affine3d C_segment_orientation( Eigen::Affine3d(_segment_orientation.value()).inverse() );
+    Eigen::Affine3d C_segment2body( Eigen::Affine3d(_body_reference.value()) );
 
 	base::samples::RigidBodyState rbs;
 	rbs.time = impl->driver.getTimestamp();
@@ -60,10 +60,7 @@ void Task::updateHook()
         Eigen::Affine3d segment_transform = impl->driver.getSegmentTransform(
                 _subject.value(), _segment.value() );
 
-        segment_transform.linear() = segment_transform.linear()
-            * C_segment_orientation.linear();
-
-	rbs.setTransform( C_world2origin * segment_transform );
+	rbs.setTransform( C_world2origin * segment_transform * C_segment2body );
 	_pose_samples.write( rbs );
 
 	_unlabeled_markers.write( impl->driver.getUnlabeledMarkers() );
