@@ -60,7 +60,8 @@ void Task::updateHook()
         Eigen::Affine3d segment_transform = impl->driver.getSegmentTransform(
                 _subject.value(), _segment.value() );
 
-        segment_transform.linear() = C_segment_orientation.linear() * segment_transform.linear();
+        segment_transform.linear() = segment_transform.linear()
+            * C_segment_orientation.linear();
 
 	rbs.setTransform( C_world2origin * segment_transform );
 	_pose_samples.write( rbs );
