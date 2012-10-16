@@ -34,6 +34,9 @@ bool Task::configureHook()
 {
     if (!_origin.value().hasValidPosition() || !_origin.value().hasValidOrientation() ) 
         _origin.set(getZeroOrigin());
+
+    if (!_body_reference.value().hasValidPosition() || !_body_reference.value().hasValidOrientation() ) 
+        _body_reference.set(getZeroOrigin());
     return true;
 }
 
