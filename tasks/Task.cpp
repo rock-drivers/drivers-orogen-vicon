@@ -65,6 +65,19 @@ void Task::updateHook()
     bool in_frame;
     Eigen::Affine3d segment_transform = impl->driver.getSegmentTransform(
         _subject.value(), _segment.value(), in_frame );
+	
+    _unlabeled_markers.write( impl->driver.getUnlabeledMarkers() );
+
+    switch(impl->driver.getLastResult()) {
+    case Driver::INVALID_SUBJECT_NAME:
+        RTT::log(RTT::Error) << "subject " << _subject.value() << " not found!" 
+            << RTT::endlog();
+        return;
+    case Driver::INVALID_SEGMENT_NAME:
+        RTT::log(RTT::Error) << "segment " << _segment.value() << " not found!" 
+            << RTT::endlog();
+        return;
+    }
     
     if (in_frame || !_invalidate_occluded.get())
         rbs.setTransform( C_world2origin * segment_transform * C_segment2body );
@@ -73,8 +86,6 @@ void Task::updateHook()
     
     if (in_frame || !_drop_occluded.get())
 	    _pose_samples.write( rbs );
-
-	_unlabeled_markers.write( impl->driver.getUnlabeledMarkers() );
     }
 }
 
