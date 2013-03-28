@@ -24,7 +24,11 @@ Orocos.run 'test_vicon' do
 
     vicon = TaskContext.get 'Task'
 
-    vicon.host = ARGV[0]
+    addr = ARGV[0].split(":")
+    vicon.host = addr[0]
+    if addr[1]
+        vicon.port = addr[1].to_i
+    end
     vicon.subject = ARGV[1]
     vicon.segment = ARGV[2]
 
