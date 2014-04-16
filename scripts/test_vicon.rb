@@ -9,20 +9,20 @@ if !ARGV[0]
     exit 1
 end
 
-if !Ping.pingecho(ARGV[0],1)
-    STDERR.puts "Host not reachable!"
-    exit 1
-end
+#if !Ping.pingecho(ARGV[0],1)
+#    STDERR.puts "Host not reachable!"
+#    exit 1
+#end
 
 #ENV['PKG_CONFIG_PATH'] = "#{File.expand_path("..", File.dirname(__FILE__))}/build:#{ENV['PKG_CONFIG_PATH']}"
 
 Orocos.initialize
 
-Orocos.run 'test_vicon' do
+Orocos.run 'vicon::Task' => 'vicon_driver' do
 
     Orocos.log_all
 
-    vicon = TaskContext.get 'Task'
+    vicon = TaskContext.get 'vicon_driver'
 
     addr = ARGV[0].split(":")
     vicon.host = addr[0]

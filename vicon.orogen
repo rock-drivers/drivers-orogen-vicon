@@ -51,14 +51,3 @@ task_context 'Task' do
 	output_port('unlabeled_markers', '/std/vector</base/Vector3d>')
 end
 
-
-deployment "test_vicon" do
-    do_not_install
-    vicon_task = task("Task", "Task").
-	periodic(0.01)
-
-    add_default_logger
-    if !corba_enabled?
-        browse vicon_task
-    end
-end

@@ -12,8 +12,8 @@ ENV['PKG_CONFIG_PATH'] = "#{File.expand_path("..", File.dirname(__FILE__))}/buil
 
 Orocos.initialize
 
-Orocos::Process.spawn 'test_vicon' do |p|
-    driver = p.task 'Task'
+Orocos.run 'vicon::Task' => 'vicon_driver' do |p|
+    driver = p.task 'vicon_driver'
     Orocos.log_all_ports
 
     driver.host = ARGV[0]
