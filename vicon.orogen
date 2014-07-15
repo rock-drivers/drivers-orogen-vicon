@@ -42,6 +42,8 @@ task_context 'Task' do
     property("ydir","int",2).doc("Direction of the y axis e.g. ... 2=Left, -2=Right ...")
     property("zdir","int",3).doc("Direction of the z axis e.g. ... 3=Up, -3=Down")
 
+    property("uncertainty_samples","int", 0).doc("Number of samples to compute the online data stream covariance. Set to 0 in case no uncertainty wants to be computed.")
+
     operation("getZeroOrigin").
         returns("base/samples/RigidBodyState")
 

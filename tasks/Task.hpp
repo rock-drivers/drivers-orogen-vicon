@@ -2,6 +2,7 @@
 #define VICON_TASK_TASK_HPP
 
 #include "vicon/TaskBase.hpp"
+#include <ViconUncertainty.hpp>
 #include <boost/shared_ptr.hpp>
 
 namespace vicon {
@@ -13,7 +14,8 @@ namespace vicon {
 
     protected:
 	boost::shared_ptr<TaskImpl> impl;
-        
+        boost::shared_ptr<vicon::ViconUncertainty <Eigen::Matrix4d> > uncertainty;
+
         virtual ::base::samples::RigidBodyState getZeroOrigin();
 
     public:

@@ -37,6 +37,9 @@ bool Task::configureHook()
 
     if (!_body_reference.value().hasValidPosition() || !_body_reference.value().hasValidOrientation() ) 
         _body_reference.set(getZeroOrigin());
+
+    uncertainty.reset(new vicon::ViconUncertainty<Eigen::Matrix4d>(_uncertainty_samples.value()));
+
     return true;
 }
 
@@ -55,36 +58,56 @@ void Task::updateHook()
     {
 	// origin is the origin2world transform for the neutral position/orientation
 	Eigen::Affine3d C_world2origin( Eigen::Affine3d(_origin.value()).inverse() );
-    Eigen::Affine3d C_segment2body( Eigen::Affine3d(_body_reference.value()) );
+        Eigen::Affine3d C_segment2body( Eigen::Affine3d(_body_reference.value()) );
 
 	base::samples::RigidBodyState rbs;
 	rbs.time = impl->driver.getTimestamp();
-    rbs.sourceFrame = _source_frame.get();
-    rbs.targetFrame = _target_frame.get();
-    
-    bool in_frame;
-    Eigen::Affine3d segment_transform = impl->driver.getSegmentTransform(
-        _subject.value(), _segment.value(), in_frame );
-	
-    _unlabeled_markers.write( impl->driver.getUnlabeledMarkers() );
+        rbs.sourceFrame = _source_frame.get();
+        rbs.targetFrame = _target_frame.get();
 
-    switch(impl->driver.getLastResult()) {
-    case Driver::INVALID_SUBJECT_NAME:
-        RTT::log(RTT::Error) << "subject " << _subject.value() << " not found!" 
-            << RTT::endlog();
-        return;
-    case Driver::INVALID_SEGMENT_NAME:
-        RTT::log(RTT::Error) << "segment " << _segment.value() << " not found!" 
-            << RTT::endlog();
-        return;
-    }
-    
-    if (in_frame || !_invalidate_occluded.get())
-        rbs.setTransform( C_world2origin * segment_transform * C_segment2body );
-    else
-        rbs.invalidate();
-    
-    if (in_frame || !_drop_occluded.get())
+        bool in_frame;
+        Eigen::Affine3d segment_transform = impl->driver.getSegmentTransform(
+        _subject.value(), _segment.value(), in_frame );
+
+        /** Push sample to the uncertainty **/
+        uncertainty->push(segment_transform.matrix());
+
+	
+        _unlabeled_markers.write( impl->driver.getUnlabeledMarkers() );
+
+        switch(impl->driver.getLastResult())
+        {
+            case Driver::INVALID_SUBJECT_NAME:
+                RTT::log(RTT::Error) << "subject " << _subject.value() << " not found!"
+                << RTT::endlog();
+                return;
+            case Driver::INVALID_SEGMENT_NAME:
+                RTT::log(RTT::Error) << "segment " << _segment.value() << " not found!" 
+                << RTT::endlog();
+                return;
+            default:
+                return;
+        }
+
+        if (in_frame || !_invalidate_occluded.get())
+        {
+            /** Fill the Rbs transformation **/
+            rbs.setTransform( C_world2origin * segment_transform * C_segment2body );
+
+            /** Set uncertainty in the rbs **/
+            if (_uncertainty_samples.value() > 0)
+            {
+                /** Online uncertainty **/
+                Eigen::Matrix4d transform_uncertainty = uncertainty->getVariance();
+
+                rbs.cov_position = transform_uncertainty.block<3,1>(0,3).asDiagonal();
+                rbs.cov_orientation = transform_uncertainty.block<3,3>(0,0);
+            }
+        }
+        else
+            rbs.invalidate();
+
+        if (in_frame || !_drop_occluded.get())
 	    _pose_samples.write( rbs );
     }
 }
