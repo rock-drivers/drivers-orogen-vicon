@@ -69,10 +69,6 @@ void Task::updateHook()
         Eigen::Affine3d segment_transform = impl->driver.getSegmentTransform(
         _subject.value(), _segment.value(), in_frame );
 
-        /** Push sample to the uncertainty **/
-        uncertainty->push(segment_transform.matrix());
-
-	
         _unlabeled_markers.write( impl->driver.getUnlabeledMarkers() );
 
         switch(impl->driver.getLastResult())
@@ -85,8 +81,6 @@ void Task::updateHook()
                 RTT::log(RTT::Error) << "segment " << _segment.value() << " not found!" 
                 << RTT::endlog();
                 return;
-            default:
-                return;
         }
 
         if (in_frame || !_invalidate_occluded.get())
@@ -97,7 +91,10 @@ void Task::updateHook()
             /** Set uncertainty in the rbs **/
             if (_uncertainty_samples.value() > 0)
             {
-                /** Online uncertainty **/
+                /** Push sample to the uncertainty **/
+                uncertainty->push(rbs.getTransform().matrix());
+
+                /** On line uncertainty **/
                 Eigen::Matrix4d transform_uncertainty = uncertainty->getVariance();
 
                 rbs.cov_position = transform_uncertainty.block<3,1>(0,3).asDiagonal();
