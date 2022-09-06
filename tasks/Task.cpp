@@ -64,7 +64,23 @@ bool Task::configureHook()
 
 bool Task::startHook()
 {
-	dataStreamClient.Connect( _host.value() );
+	switch(dataStreamClient.Connect( _host.value() ).Result)
+	{
+	case ViconDataStreamSDK::CPP::Result::InvalidHostName:
+		LOG_ERROR_S << "Host name '" << _host.value() << "' is invalid." << std::endl;
+		break;
+	case ViconDataStreamSDK::CPP::Result::ClientAlreadyConnected:
+		LOG_ERROR_S << "Client is already connected." << std::endl;
+		break;
+	case ViconDataStreamSDK::CPP::Result::ClientConnectionFailed:
+		LOG_ERROR_S << "Client connection failed." << std::endl;
+		break;
+	case ViconDataStreamSDK::CPP::Result::Success:
+		LOG_INFO_S << "Successfully connected to '" << _host.value() << "'." << std::endl;
+		break;
+	default:
+		LOG_ERROR_S << "Connect() returned unhandled code." << std::endl;
+	}
 
 	if( !dataStreamClient.IsConnected().Connected )
 		return false;
@@ -202,4 +218,3 @@ void Task::stopHook()
 	LOG_INFO_S << "disconnecting";
 	dataStreamClient.Disconnect();
 }
-
