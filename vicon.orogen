@@ -7,11 +7,9 @@ import_types_from 'base'
 task_context 'Task' do
         default_activity :periodic, 0.01
         needs_configuration
-	
-	property("host", "/std/string").
+
+        property("host", "/std/string").
             doc "the network host of the vicon tracking system"
-        property("port", "int", 801).
-            doc "the network port to use for the vicon tracking system"
 
         property("subject",   "/std/string").
             doc "the subject that is being tracked"

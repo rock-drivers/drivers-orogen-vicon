@@ -64,11 +64,7 @@ bool Task::configureHook()
 
 bool Task::startHook()
 {
-	std::ostringstream host;
-	host << _host.value() << ":" << _port.value();
-	LOG_INFO_S << "connecting to " << host.str();
-
-	dataStreamClient.Connect( host.str() );
+	dataStreamClient.Connect( _host.value() );
 
 	if( !dataStreamClient.IsConnected().Connected )
 		return false;
