@@ -8,15 +8,16 @@ if !ARGV[0]
     exit 1
 end
 
-ENV['PKG_CONFIG_PATH'] = "#{File.expand_path("..", File.dirname(__FILE__))}/build:#{ENV['PKG_CONFIG_PATH']}"
-
 Orocos.initialize
+Orocos.run 'vicon::Task' => 'vicon_driver' do
 
-Orocos.run 'vicon::Task' => 'vicon_driver' do |p|
-    driver = p.task 'vicon_driver'
-    Orocos.log_all_ports
+    driver = Orocos.get 'vicon_driver'
 
-    driver.host = ARGV[0]
+    addr = ARGV[0].split(":")
+    driver.host = addr[0]
+    if addr[1]
+        driver.port = addr[1].to_i
+    end
     driver.subject = ARGV[1]
     driver.segment = ARGV[2]
 
