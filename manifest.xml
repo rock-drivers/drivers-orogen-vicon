@@ -10,6 +10,6 @@
   </copyright>
   <license>LGPL v2 or later</license>
 
-  <depend package="drivers/vicon"/>
+  <depend package="drivers/ViconDataStreamSDK"/>
   <depend package="base/orogen/types"/>
 </package>

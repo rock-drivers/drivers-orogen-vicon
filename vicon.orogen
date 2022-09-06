@@ -1,7 +1,7 @@
 name 'vicon'
 version 0.1
 
-using_library 'vicon'
+using_library 'ViconDataStreamSDK_CPP'
 import_types_from 'base'
 
 task_context 'Task' do

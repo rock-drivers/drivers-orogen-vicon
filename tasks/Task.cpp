@@ -1,20 +1,44 @@
 #include "Task.hpp"
 
-#include <ViconDriver.hpp>
+#include <base-logging/Logging.hpp>
 
 using namespace vicon;
 
-
-namespace vicon {
-class TaskImpl
+int axesMap ( ViconDataStreamSDK::CPP::Direction::Enum axis )
 {
-public:
-    Driver driver;
-};
+	switch ( axis )
+	{
+	case ViconDataStreamSDK::CPP::Direction::Up: return 3;
+	case ViconDataStreamSDK::CPP::Direction::Down: return -3;
+	case ViconDataStreamSDK::CPP::Direction::Left: return 2;
+	case ViconDataStreamSDK::CPP::Direction::Right: return -2;
+	case ViconDataStreamSDK::CPP::Direction::Forward: return 1;
+	case ViconDataStreamSDK::CPP::Direction::Backward: return -1;
+	default: return 0;
+	}
+}
+
+ViconDataStreamSDK::CPP::Direction::Enum axesMap ( int axis )
+{
+	int axis_val = axis < 0 ? -axis : axis;
+	switch ( axis_val )
+	{
+	case 1:
+		if ( axis > 0 ) return  ViconDataStreamSDK::CPP::Direction::Forward;
+		else return ViconDataStreamSDK::CPP::Direction::Backward; 
+	case 2:
+		if ( axis > 0 ) return  ViconDataStreamSDK::CPP::Direction::Left;
+		else return ViconDataStreamSDK::CPP::Direction::Right; 
+	case 3:
+		if ( axis > 0 ) return  ViconDataStreamSDK::CPP::Direction::Up;
+		else return ViconDataStreamSDK::CPP::Direction::Down;
+	default:
+		return ViconDataStreamSDK::CPP::Direction::Forward;
+	}
 }
 
 Task::Task(std::string const& name)
-    : TaskBase(name), impl( new TaskImpl() )
+    : TaskBase(name)
 {
 }
 
@@ -24,11 +48,6 @@ Task::Task(std::string const& name)
     lrbs.initUnknown();
     return lrbs;
 }
-
-
-/// The following lines are template definitions for the various state machine
-// hooks defined by Orocos::RTT. See Task.hpp for more detailed
-// documentation about them.
 
 bool Task::configureHook()
 {
@@ -45,78 +64,146 @@ bool Task::configureHook()
 
 bool Task::startHook()
 {
-    bool result = impl->driver.connect( _host.value(), _port.value() );
-    if (result)
-        impl->driver.setAxesDir( _xdir.value(), _ydir.value(), _zdir.value() );
-    return result;
+	std::ostringstream host;
+	host << _host.value() << ":" << _port.value();
+	LOG_INFO_S << "connecting to " << host.str();
+
+	dataStreamClient.Connect( host.str() );
+
+	if( !dataStreamClient.IsConnected().Connected )
+		return false;
+
+	dataStreamClient.EnableSegmentData();
+	dataStreamClient.EnableUnlabeledMarkerData();
+
+	//dataStreamClient.SetStreamMode( ViconDataStreamSDK::CPP::StreamMode::ClientPull );
+	dataStreamClient.SetStreamMode( ViconDataStreamSDK::CPP::StreamMode::ClientPullPreFetch );
+	// MyClient.SetStreamMode( ViconDataStreamSDK::CPP::StreamMode::ServerPush );
+
+	// Set the global up axis
+	dataStreamClient.SetAxisMapping(
+		axesMap(_xdir.value()),
+		axesMap(_ydir.value()),
+		axesMap(_zdir.value()));
+
+	return true;
+}
+
+bool Task::getFrame( const base::Time& timeout )
+{
+	base::Time start = base::Time::now();
+	ViconDataStreamSDK::CPP::Result::Enum result;
+	while( ((result = dataStreamClient.GetFrame().Result) == ViconDataStreamSDK::CPP::Result::NoFrame) && (start+timeout > base::Time::now()) )
+	{
+		const unsigned long wait_ms = 10;
+		usleep( wait_ms );
+	}
+
+	if( result == ViconDataStreamSDK::CPP::Result::Success )
+	{
+		LOG_DEBUG_S << "Got Frame!";
+		return true;
+	}
+	else
+	{
+		if ( timeout.toSeconds() > 0 )
+		{
+			LOG_ERROR_S << "No Frame received!";
+		}
+		return false;
+	}
 }
 
 void Task::updateHook()
 {
-    const base::Time timeout( base::Time::fromSeconds(0) );
-    while( impl->driver.getFrame( timeout ) )
-    {
-	// origin is the origin2world transform for the neutral position/orientation
-	Eigen::Affine3d C_world2origin( Eigen::Affine3d(_origin.value()).inverse() );
-        Eigen::Affine3d C_segment2body( Eigen::Affine3d(_body_reference.value()) );
+	ViconDataStreamSDK::CPP::Result::Enum result = dataStreamClient.GetFrame().Result;
+	if(result == ViconDataStreamSDK::CPP::Result::Success)
+	{
+		// origin is the origin2world transform for the neutral position/orientation
+		Eigen::Affine3d C_world2origin( Eigen::Affine3d(_origin.value()).inverse() );
+		Eigen::Affine3d C_segment2body( Eigen::Affine3d(_body_reference.value()) );
 
-	base::samples::RigidBodyState rbs;
-	rbs.time = impl->driver.getTimestamp();
-        rbs.sourceFrame = _source_frame.get();
-        rbs.targetFrame = _target_frame.get();
+		base::samples::RigidBodyState rbs;
+		rbs.time = base::Time::now();
+		rbs.sourceFrame = _source_frame.get();
+		rbs.targetFrame = _target_frame.get();
 
-        bool in_frame;
-        Eigen::Affine3d segment_transform = impl->driver.getSegmentTransform(
-        _subject.value(), _segment.value(), in_frame );
+		// Get the segment name
+		std::string SegmentName = dataStreamClient.GetSubjectRootSegmentName(_subject.value()).SegmentName;
 
-        _unlabeled_markers.write( impl->driver.getUnlabeledMarkers() );
+		ViconDataStreamSDK::CPP::Output_GetSegmentGlobalTranslation trans = 
+			dataStreamClient.GetSegmentGlobalTranslation( _subject.value(), _segment.value() );
 
-        switch(impl->driver.getLastResult())
-        {
-            case Driver::INVALID_SUBJECT_NAME:
-                RTT::log(RTT::Error) << "subject " << _subject.value() << " not found!"
-                << RTT::endlog();
-                return;
-            case Driver::INVALID_SEGMENT_NAME:
-                RTT::log(RTT::Error) << "segment " << _segment.value() << " not found!" 
-                << RTT::endlog();
-                return;
-        }
+		ViconDataStreamSDK::CPP::Output_GetSegmentGlobalRotationQuaternion quat = 
+			dataStreamClient.GetSegmentGlobalRotationQuaternion( _subject.value(), _segment.value() );
 
-        if (in_frame || !_invalidate_occluded.get())
-        {
-            /** Fill the Rbs transformation **/
-            rbs.setTransform( C_world2origin * segment_transform * C_segment2body );
+		Eigen::Vector3d trans_m( trans.Translation[0], trans.Translation[1], trans.Translation[2] );
 
-            /** Set uncertainty in the rbs **/
-            if (_uncertainty_samples.value() > 0)
-            {
-                /** Push sample to the uncertainty **/
-                uncertainty->push(rbs.getTransform().matrix());
+		// vicon data is in mm, but we prefer standard si units...
+		Eigen::Affine3d segment_transform = Eigen::Translation3d( trans_m * 1e-3 ) * 
+		Eigen::Quaterniond( quat.Rotation[3], quat.Rotation[0], quat.Rotation[1], quat.Rotation[2] );
 
-                /** On line uncertainty **/
-                Eigen::Matrix4d transform_uncertainty = uncertainty->getVariance();
+		bool inFrame = !trans.Occluded;
 
-                rbs.cov_position = transform_uncertainty.block<3,1>(0,3).asDiagonal();
-                rbs.cov_orientation = transform_uncertainty.block<3,3>(0,0);
-            }
-        }
-        else
-            rbs.invalidate();
+		std::vector<base::Vector3d> markers;
+		unsigned int numMarkers = dataStreamClient.GetUnlabeledMarkerCount().MarkerCount;
+		for( unsigned int idx = 0 ; idx < numMarkers ; ++idx )
+		{
+			ViconDataStreamSDK::CPP::Output_GetUnlabeledMarkerGlobalTranslation globalTranslation =
+			dataStreamClient.GetUnlabeledMarkerGlobalTranslation( idx );
 
-        if (in_frame || !_drop_occluded.get())
-	    _pose_samples.write( rbs );
-    }
+			Eigen::Vector3d marker_pos( 
+				globalTranslation.Translation[ 0 ],
+				globalTranslation.Translation[ 1 ],
+				globalTranslation.Translation[ 2 ] );
+
+			markers.push_back( marker_pos * 1e-3 ); 
+		}
+		_unlabeled_markers.write( markers );
+
+		if(trans.Result == ViconDataStreamSDK::CPP::Result::InvalidSubjectName)
+		{
+			LOG_ERROR_S << "subject " << _subject.value() << " not found!" << RTT::endlog();
+			return;
+		}else
+		if(trans.Result == ViconDataStreamSDK::CPP::Result::InvalidSegmentName)
+		{
+			LOG_ERROR_S << "segment " << _segment.value() << " not found!" << RTT::endlog();
+			return;
+		}
+
+		if (inFrame || !_invalidate_occluded.get())
+		{
+			/** Fill the Rbs transformation **/
+			rbs.setTransform( C_world2origin * segment_transform * C_segment2body );
+
+			/** Set uncertainty in the rbs **/
+			if (_uncertainty_samples.value() > 0)
+			{
+				/** Push sample to the uncertainty **/
+				uncertainty->push(rbs.getTransform().matrix());
+
+				/** On line uncertainty **/
+				Eigen::Matrix4d transform_uncertainty = uncertainty->getVariance();
+
+				rbs.cov_position = transform_uncertainty.block<3,1>(0,3).asDiagonal();
+				rbs.cov_orientation = transform_uncertainty.block<3,3>(0,0);
+			}
+		}else
+		{
+			rbs.invalidate();
+		}
+
+		if (inFrame || !_drop_occluded.get())
+		{
+			_pose_samples.write( rbs );
+		}
+	}
 }
 
-// void Task::errorHook()
-// {
-// }
 void Task::stopHook()
 {
-    impl->driver.disconnect();
+	LOG_INFO_S << "disconnecting";
+	dataStreamClient.Disconnect();
 }
-// void Task::cleanupHook()
-// {
-// }
 
