@@ -1,7 +1,6 @@
 #! /usr/bin/env ruby
 
 require 'orocos'
-#include Orocos
 
 if ARGV.length != 3
     STDERR.puts "usage: test.rb host subject segment"
@@ -24,4 +23,3 @@ Orocos.run 'vicon::Task' => 'vicon_driver' do
 
     driver.stop
 end
-

@@ -4,12 +4,14 @@
       allows to track a single subject/segment and provides the data as a
       rigidbodystate.
   </description>
-  <author>Jakob Schwendner/jakob.schwendner@dfki.de</author>
+  <author>Jakob Schwendner</author>
+  <maintainer email="sebastian.kasperski@dfki.de">Sebastian Kasperski</maintainer>
   <copyright>
       DFKI/robotik@dfki.de
   </copyright>
   <license>LGPL v2 or later</license>
 
-  <depend package="drivers/ViconDataStreamSDK"/>
+  <depend package="drivers/vicon"/>
   <depend package="base/orogen/types"/>
 </package>
+
