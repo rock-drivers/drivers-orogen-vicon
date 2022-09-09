@@ -17,9 +17,6 @@ namespace vicon
 		boost::shared_ptr<vicon::ViconUncertainty <Eigen::Matrix4d> > uncertainty;
 		ViconDataStreamSDK::CPP::Client dataStreamClient;
 
-		virtual base::samples::RigidBodyState getZeroOrigin();
-		bool getFrame( const base::Time& timeout );
-
 	public:
 		Task(std::string const& name = "vicon::Task");
 

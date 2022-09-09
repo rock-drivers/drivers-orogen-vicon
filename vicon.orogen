@@ -4,50 +4,50 @@ version 0.1
 using_library 'ViconDataStreamSDK_CPP'
 import_types_from 'base'
 
-task_context 'Task' do
-        default_activity :periodic, 0.01
-        needs_configuration
+task_context "Task" do
+	default_activity :periodic, 0.01
+	needs_configuration
 
-        property("host", "/std/string").
-            doc "the network host of the vicon tracking system"
+	property("host", "/std/string")
+	.doc("The network host of the vicon tracking system.")
 
-        property("subject",   "/std/string").
-            doc "the subject that is being tracked"
-        property("segment",   "/std/string").
-            doc "the segment of the subject that is tracked"
+	property("subject", "/std/string")
+	.doc("The subject that is being tracked.")
 
-        property("source_frame", "/std/string", "measurement").
-            doc "from frame for the transformer"
-        property("target_frame", "/std/string", "segment").
-            doc "to frame for the transformer"
+	property("segment", "/std/string")
+	.doc("The segment of the subject that is tracked. This is the same as subject when using Vicon in Tracker mode.")
 
-        property("drop_occluded", "bool", false).
-            doc "do not send samples when the segment is occluded"
-        property("invalidate_occluded", "bool", true).
-            doc "invalidate sample when the segment is occluded"
+	property("source_frame", "/std/string", "measurement")
+	.doc "Choosen body reference frame."
 
-    # Transformation in vicon is Tem Tms Tsb
-    # Tem is the earth to vicon origin (measurement frame)
-    # Tms is measurement to segment which is the transfromation vicon provides
-    # Tsb is the segment to body
-	property("origin", "/base/samples/RigidBodyState").
-	    doc "set the origin of the segment, includes position and orientation."
-    property("body_reference", "/base/samples/RigidBodyState").
-         doc "transformation between segment cs (vicon data)" +
-             "and a choosen body fixed reference cs"
+	property("target_frame", "/std/string", "segment")
+	.doc("Chosen world reference frame.")
 
-    property("xdir","int",1).doc("Direction of the x axis e.g. 1=Forward, -1=Backward ...")
-    property("ydir","int",2).doc("Direction of the y axis e.g. ... 2=Left, -2=Right ...")
-    property("zdir","int",3).doc("Direction of the z axis e.g. ... 3=Up, -3=Down")
+	property("drop_occluded", "bool", false)
+	.doc("Do not send samples when the segment is occluded.")
 
-    property("uncertainty_samples","int", 0).doc("Number of samples to compute the online data stream covariance. Set to 0 in case no uncertainty wants to be computed.")
+	property("invalidate_occluded", "bool", true)
+	.doc("Invalidate sample when the segment is occluded.")
 
-    operation("getZeroOrigin").
-        returns("base/samples/RigidBodyState")
+	# Transformation in vicon is Tem Tms Tsb
+	# Tem is the earth to vicon origin (measurement frame)
+	# Tms is measurement to segment which is the transfromation vicon provides
+	# Tsb is the segment to body
+	property("origin", "/base/samples/RigidBodyState")
+	.doc("Set the origin of the segment, includes position and orientation.")
 
-	output_port('pose_samples', '/base/samples/RigidBodyState').
-            doc "pose of the configured segment."
+	property("body_reference", "/base/samples/RigidBodyState")
+	.doc("Transformation between segment cs (vicon data) and a choosen body fixed reference cs.")
+
+	property("xdir","int",1).doc("Direction of the x axis e.g. 1=Forward, -1=Backward ...")
+	property("ydir","int",2).doc("Direction of the y axis e.g. ... 2=Left, -2=Right ...")
+	property("zdir","int",3).doc("Direction of the z axis e.g. ... 3=Up, -3=Down")
+
+	property("uncertainty_samples","int", 0)
+	.doc("Number of samples to compute the online data stream covariance. When set to 0, no uncertainty is computed.")
+
+	output_port('pose_samples', '/base/samples/RigidBodyState')
+	.doc("Pose of the configured segment.")
 
 	output_port('unlabeled_markers', '/std/vector</base/Vector3d>')
 end
-

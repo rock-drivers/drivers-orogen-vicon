@@ -42,24 +42,19 @@ Task::Task(std::string const& name)
 {
 }
 
-::base::samples::RigidBodyState Task::getZeroOrigin()
-{
-    base::samples::RigidBodyState lrbs;
-    lrbs.initUnknown();
-    return lrbs;
-}
-
 bool Task::configureHook()
 {
-    if (!_origin.value().hasValidPosition() || !_origin.value().hasValidOrientation() ) 
-        _origin.set(getZeroOrigin());
+	base::samples::RigidBodyState zeroOrigin;
+	zeroOrigin.initUnknown();
 
-    if (!_body_reference.value().hasValidPosition() || !_body_reference.value().hasValidOrientation() ) 
-        _body_reference.set(getZeroOrigin());
+	if (!_origin.value().hasValidPosition() || !_origin.value().hasValidOrientation() ) 
+		_origin.set(zeroOrigin);
 
-    uncertainty.reset(new vicon::ViconUncertainty<Eigen::Matrix4d>(_uncertainty_samples.value()));
+	if (!_body_reference.value().hasValidPosition() || !_body_reference.value().hasValidOrientation() ) 
+		_body_reference.set(zeroOrigin);
 
-    return true;
+	uncertainty.reset(new vicon::ViconUncertainty<Eigen::Matrix4d>(_uncertainty_samples.value()));
+	return true;
 }
 
 bool Task::startHook()
@@ -99,31 +94,6 @@ bool Task::startHook()
 		axesMap(_zdir.value()));
 
 	return true;
-}
-
-bool Task::getFrame( const base::Time& timeout )
-{
-	base::Time start = base::Time::now();
-	ViconDataStreamSDK::CPP::Result::Enum result;
-	while( ((result = dataStreamClient.GetFrame().Result) == ViconDataStreamSDK::CPP::Result::NoFrame) && (start+timeout > base::Time::now()) )
-	{
-		const unsigned long wait_ms = 10;
-		usleep( wait_ms );
-	}
-
-	if( result == ViconDataStreamSDK::CPP::Result::Success )
-	{
-		LOG_DEBUG_S << "Got Frame!";
-		return true;
-	}
-	else
-	{
-		if ( timeout.toSeconds() > 0 )
-		{
-			LOG_ERROR_S << "No Frame received!";
-		}
-		return false;
-	}
 }
 
 void Task::updateHook()
