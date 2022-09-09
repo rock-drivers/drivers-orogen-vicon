@@ -17,10 +17,10 @@ task_context "Task" do
 	property("segment", "/std/string")
 	.doc("The segment of the subject that is tracked. This is the same as subject when using Vicon in Tracker mode.")
 
-	property("source_frame", "/std/string", "measurement")
-	.doc "Choosen body reference frame."
+	property("source_frame", "/std/string", "object")
+	.doc "Choosen object or segment reference frame."
 
-	property("target_frame", "/std/string", "segment")
+	property("target_frame", "/std/string", "vicon")
 	.doc("Chosen world reference frame.")
 
 	property("drop_occluded", "bool", false)
@@ -29,16 +29,6 @@ task_context "Task" do
 	property("invalidate_occluded", "bool", true)
 	.doc("Invalidate sample when the segment is occluded.")
 
-	# Transformation in vicon is Tem Tms Tsb
-	# Tem is the earth to vicon origin (measurement frame)
-	# Tms is measurement to segment which is the transfromation vicon provides
-	# Tsb is the segment to body
-	property("origin", "/base/samples/RigidBodyState")
-	.doc("Set the origin of the segment, includes position and orientation.")
-
-	property("body_reference", "/base/samples/RigidBodyState")
-	.doc("Transformation between segment cs (vicon data) and a choosen body fixed reference cs.")
-
 	property("xdir","int",1).doc("Direction of the x axis e.g. 1=Forward, -1=Backward ...")
 	property("ydir","int",2).doc("Direction of the y axis e.g. ... 2=Left, -2=Right ...")
 	property("zdir","int",3).doc("Direction of the z axis e.g. ... 3=Up, -3=Down")
@@ -46,8 +36,8 @@ task_context "Task" do
 	property("uncertainty_samples","int", 0)
 	.doc("Number of samples to compute the online data stream covariance. When set to 0, no uncertainty is computed.")
 
-	output_port('pose_samples', '/base/samples/RigidBodyState')
+	output_port("pose_samples", "/base/samples/RigidBodyState")
 	.doc("Pose of the configured segment.")
 
-	output_port('unlabeled_markers', '/std/vector</base/Vector3d>')
+	output_port("unlabeled_markers", "/std/vector</base/Vector3d>")
 end

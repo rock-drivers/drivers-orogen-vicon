@@ -44,15 +44,6 @@ Task::Task(std::string const& name)
 
 bool Task::configureHook()
 {
-	base::samples::RigidBodyState zeroOrigin;
-	zeroOrigin.initUnknown();
-
-	if (!_origin.value().hasValidPosition() || !_origin.value().hasValidOrientation() ) 
-		_origin.set(zeroOrigin);
-
-	if (!_body_reference.value().hasValidPosition() || !_body_reference.value().hasValidOrientation() ) 
-		_body_reference.set(zeroOrigin);
-
 	uncertainty.reset(new vicon::ViconUncertainty<Eigen::Matrix4d>(_uncertainty_samples.value()));
 	return true;
 }
@@ -101,10 +92,6 @@ void Task::updateHook()
 	ViconDataStreamSDK::CPP::Result::Enum result = dataStreamClient.GetFrame().Result;
 	if(result == ViconDataStreamSDK::CPP::Result::Success)
 	{
-		// origin is the origin2world transform for the neutral position/orientation
-		Eigen::Affine3d C_world2origin( Eigen::Affine3d(_origin.value()).inverse() );
-		Eigen::Affine3d C_segment2body( Eigen::Affine3d(_body_reference.value()) );
-
 		base::samples::RigidBodyState rbs;
 		rbs.time = base::Time::now();
 		rbs.sourceFrame = _source_frame.get();
@@ -157,7 +144,7 @@ void Task::updateHook()
 		if (inFrame || !_invalidate_occluded.get())
 		{
 			/** Fill the Rbs transformation **/
-			rbs.setTransform( C_world2origin * segment_transform * C_segment2body );
+			rbs.setTransform(segment_transform);
 
 			/** Set uncertainty in the rbs **/
 			if (_uncertainty_samples.value() > 0)
