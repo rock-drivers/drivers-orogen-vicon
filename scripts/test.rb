@@ -1,20 +1,16 @@
 #! /usr/bin/env ruby
 
 require 'orocos'
-include Orocos
 
-if !ARGV[0]
+if ARGV.length != 3
     STDERR.puts "usage: test.rb host subject segment"
     exit 1
 end
 
-ENV['PKG_CONFIG_PATH'] = "#{File.expand_path("..", File.dirname(__FILE__))}/build:#{ENV['PKG_CONFIG_PATH']}"
-
 Orocos.initialize
+Orocos.run 'vicon::Task' => 'vicon_driver' do
 
-Orocos.run 'vicon::Task' => 'vicon_driver' do |p|
-    driver = p.task 'vicon_driver'
-    Orocos.log_all_ports
+    driver = Orocos.get 'vicon_driver'
 
     driver.host = ARGV[0]
     driver.subject = ARGV[1]
@@ -23,15 +19,7 @@ Orocos.run 'vicon::Task' => 'vicon_driver' do |p|
     driver.configure
     driver.start
 
-    reader = driver.pose_samples.reader
-
-    loop do
-	if sample = reader.read
-	    puts "%s %s %s" % [sample.position.data[0], sample.position.data[1], sample.position.data[2]]
-	end
-	sleep 0.01
-    end
+    Orocos.watch driver
 
     driver.stop
 end
-
