@@ -90,10 +90,16 @@ bool Task::startHook()
 void Task::updateHook()
 {
 	ViconDataStreamSDK::CPP::Result::Enum result = dataStreamClient.GetFrame().Result;
+
 	if(result == ViconDataStreamSDK::CPP::Result::Success)
 	{
 		base::samples::RigidBodyState rbs;
 		rbs.time = base::Time::now();
+
+		if (_substract_reported_latency.value()) {
+			rbs.time = rbs.time - base::Time::fromSeconds(dataStreamClient.GetLatencyTotal().Total);
+		}
+
 		rbs.sourceFrame = _source_frame.get();
 		rbs.targetFrame = _target_frame.get();
 
