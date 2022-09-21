@@ -36,6 +36,9 @@ task_context "Task" do
 	property("uncertainty_samples","int", 0)
 	.doc("Number of samples to compute the online data stream covariance. When set to 0, no uncertainty is computed.")
 
+	property("substract_reported_latency", "bool", false)
+	.doc("substract the vicon-reported letency from the local timestamp. This will not include transmission time from vicon to this task, but still have a more exact timestamps.");
+
 	output_port("pose_samples", "/base/samples/RigidBodyState")
 	.doc("Pose of the configured segment.")
 
