@@ -45,6 +45,7 @@ Task::Task(std::string const& name)
 bool Task::configureHook()
 {
 	uncertainty.reset(new vicon::ViconUncertainty<Eigen::Matrix4d>(_uncertainty_samples.value()));
+	start_pose_initialized = false;
 	return true;
 }
 
