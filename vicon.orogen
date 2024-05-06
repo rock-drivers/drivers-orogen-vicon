@@ -45,7 +45,7 @@ task_context "Task" do
 	output_port("pose_samples", "/base/samples/RigidBodyState")
 	.doc("Pose of the configured segment.")
 	output_port("pose_relative",  "/base/samples/RigidBodyState")
-	.doc("Pose of the configured segment relative to its first pose. Can be reset using `reset_pose()`")
+	.doc("Pose of the configured segment relative to its first pose. This will be reset by reconfiguring the task.")
 
 	output_port("unlabeled_markers", "/std/vector</base/Vector3d>")
 end
