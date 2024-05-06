@@ -45,6 +45,7 @@ Task::Task(std::string const& name)
 bool Task::configureHook()
 {
 	uncertainty.reset(new vicon::ViconUncertainty<Eigen::Matrix4d>(_uncertainty_samples.value()));
+	start_pose_initialized = false;
 	return true;
 }
 
@@ -93,15 +94,17 @@ void Task::updateHook()
 
 	if(result == ViconDataStreamSDK::CPP::Result::Success)
 	{
-		base::samples::RigidBodyState rbs;
+		base::samples::RigidBodyState rbs, rbs_relative;
 		rbs.time = base::Time::now();
 
 		if (_substract_reported_latency.value()) {
 			rbs.time = rbs.time - base::Time::fromSeconds(dataStreamClient.GetLatencyTotal().Total);
 		}
+		rbs_relative.time = rbs.time;
+		rbs_relative.sourceFrame = rbs.sourceFrame = _source_frame.get();
 
-		rbs.sourceFrame = _source_frame.get();
 		rbs.targetFrame = _target_frame.get();
+		rbs_relative.targetFrame = _target_frame_relative.get();
 
 		// Get the segment name
 		std::string SegmentName = dataStreamClient.GetSubjectRootSegmentName(_subject.value()).SegmentName;
@@ -147,10 +150,17 @@ void Task::updateHook()
 			return;
 		}
 
+		if(!start_pose_initialized && inFrame)
+		{
+			start_pose_initialized = true;
+			start_pose_inverse = segment_transform.inverse(Eigen::TransformTraits::Isometry);
+		}
+
 		if (inFrame || !_invalidate_occluded.get())
 		{
 			/** Fill the Rbs transformation **/
 			rbs.setTransform(segment_transform);
+			rbs_relative.setTransform(start_pose_inverse * segment_transform);
 
 			/** Set uncertainty in the rbs **/
 			if (_uncertainty_samples.value() > 0)
@@ -167,11 +177,13 @@ void Task::updateHook()
 		}else
 		{
 			rbs.invalidate();
+			rbs_relative.invalidate();
 		}
 
 		if (inFrame || !_drop_occluded.get())
 		{
 			_pose_samples.write( rbs );
+			_pose_relative.write( rbs_relative);
 		}
 	}
 }

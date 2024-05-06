@@ -23,6 +23,9 @@ task_context "Task" do
 	property("target_frame", "/std/string", "vicon")
 	.doc("Chosen world reference frame.")
 
+	property("target_frame_relative", "/std/string", "vicon_start")
+	.doc("Chosen world reference frame name for the relative pose.")
+
 	property("drop_occluded", "bool", false)
 	.doc("Do not send samples when the segment is occluded.")
 
@@ -41,6 +44,8 @@ task_context "Task" do
 
 	output_port("pose_samples", "/base/samples/RigidBodyState")
 	.doc("Pose of the configured segment.")
+	output_port("pose_relative",  "/base/samples/RigidBodyState")
+	.doc("Pose of the configured segment relative to its first pose. This will be reset by reconfiguring the task.")
 
 	output_port("unlabeled_markers", "/std/vector</base/Vector3d>")
 end

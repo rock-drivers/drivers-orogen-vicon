@@ -17,6 +17,9 @@ namespace vicon
 		boost::shared_ptr<vicon::ViconUncertainty <Eigen::Matrix4d> > uncertainty;
 		ViconDataStreamSDK::CPP::Client dataStreamClient;
 
+		Eigen::Affine3d start_pose_inverse;
+		bool start_pose_initialized = false;
+
 	public:
 		Task(std::string const& name = "vicon::Task");
 
